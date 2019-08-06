@@ -48,7 +48,7 @@ class PlayList extends React.Component {
       roomURLs: database.ref('rooms/0/urls'),
     }
     this.database.roomURLs.on('value', snapshot => {
-      console.log(snapshot.val());
+      this.setState({ urls: snapshot.val() });
     })
   }
 
@@ -72,15 +72,26 @@ class PlayList extends React.Component {
         duration: 2000,
       })
     } else {
-      this.snackbarRef.current._open({
-        variant: 'success',
-        message: 'Bài nhạc đã được thêm!',
-      });
-      this.database.roomURLs.set([...this.state.urls, this.state.newURL] || []);
-      this.setState({
-        newURL: '',
-        urls: [...this.state.urls, this.state.newURL]
-      });
+      this.database.roomURLs.set(
+        [...this.state.urls, this.state.newURL] || [],
+        (error) => {
+          if (error) {
+            this.snackbarRef.current._open({
+              variant: 'error',
+              message: 'Oops sr, có gì đấy không đúng xảy ra rồi :<',
+              duration: 2000,
+            });
+          } else {
+            this.snackbarRef.current._open({
+              variant: 'success',
+              message: 'Bài nhạc đã được thêm!',
+            });
+            this.setState({
+              newURL: '',
+              urls: [...this.state.urls, this.state.newURL]
+            });
+          }
+        });
     }
   }
 
@@ -88,10 +99,21 @@ class PlayList extends React.Component {
     if (this.props.playingSource === this.state.urls[index]) {
       this.props.updatePlayURL(null);
     }
-    this.database.roomURLs.set(this.state.urls.filter((_, i) => index !== i));
-    this.setState({
-      urls: this.state.urls.filter((_, i) => index !== i)
-    });
+    this.database.roomURLs.set(
+      this.state.urls.filter((_, i) => index !== i),
+      (error) => {
+        if (error) {
+          this.snackbarRef.current._open({
+            variant: 'error',
+            message: 'Oops, thử lại sau nhé :<',
+            duration: 2000,
+          });
+        } else {
+          this.setState({
+            urls: this.state.urls.filter((_, i) => index !== i)
+          });
+        }
+      });
   }
 
   render() {
