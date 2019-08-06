@@ -1,78 +1,56 @@
 import React from 'react';
-import { Button, TextField, Grid, Card, CardContent } from '@material-ui/core';
+import { Card, CardContent } from '@material-ui/core';
 import ReactPlayer from 'react-player';
 
 class Player extends React.Component {
-  state = {
-    url: '',
-    _url: ''
-  }
-
   constructor() {
     super()
-    this._forceSeek = this._forceSeek.bind(this)
-    this._onSeek = this._onSeek.bind(this)
-    this._onPause = this._onPause.bind(this)
-    this._onURLChange = this._onURLChange.bind(this)
-    this._addURL = this._addURL.bind(this)
+    this._onSeek = this._onSeek.bind(this);
+    this._onPause = this._onPause.bind(this);
+    this._forceSeek = this._forceSeek.bind(this);
+    this._forcePause = this._forcePause.bind(this);
   }
 
-  _addURL(e) {
-    e.preventDefault()
-    this.setState({ url: this.state._url })
-    console.log(this.state)
+  _forcePause() {
+    this.player.getInternalPlayer().pauseVideo();
   }
 
   _forceSeek(seconds) {
-    this.player.seekTo(seconds, 'second')
-    this.player.getInternalPlayer().playVideo()
+    this.player.seekTo(seconds, 'second');
+    this.player.getInternalPlayer().playVideo();
   }
 
   _onPause() {
-    console.log('paused')
-    console.log(this.player.getCurrentTime())
+    console.log('paused');
+    console.log(this.player.getCurrentTime());
   }
 
   _onSeek() {
-    console.log('seek')
-    console.log(this.player.getCurrentTime())
-  }
-
-  _onURLChange(e) {
-    this.setState({ _url: e.target.value })
+    console.log('seek');
+    console.log(this.player.getCurrentTime());
   }
 
   ref = player => {
-    this.player = player
+    this.player = player;
   }
 
   render() {
-    const { url } = this.state;
+    const { url } = this.props;
     return (
-      <Grid container spacing={2} style={{ margin: '10px' }}>
-        <Grid item xs={7} style={{ padding: '5px' }}>
-          <Card style={{ minHeight: '200px' }}>
-            <CardContent>
-              <ReactPlayer url={url || 'https://www.youtube.com/watch?v=xVf4Zk8CBj0'}
-                ref={this.ref}
-                controls
-                onPlay={this._onSeek}
-                onPause={this._onPause}
-                style={{ textAlign: 'center' }}
-                width='100%' />
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={4}>
-          <Card>
-            <CardContent>
-              <form onSubmit={this._addURL}>
-                <TextField label='+ new video' onChange={this._onURLChange} />
-              </form>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <Card style={{ height: '30vw' }}>
+        <CardContent style={{ padding: 0, height: '100%' }}>
+          <ReactPlayer url={url}
+            ref={this.ref}
+            controls
+            playing
+            onPlay={this._onSeek}
+            onPause={this._onPause}
+            style={{ margin: 'auto' }}
+            width='100%'
+            height='100%'
+          />
+        </CardContent>
+      </Card>
     )
   }
 }

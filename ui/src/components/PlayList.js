@@ -22,12 +22,16 @@ const styles = ({
   playlistAddURL: {
     flexGrow: 2,
   },
+  content: {
+    padding: 0,
+  }
 });
 
 class PlayList extends React.Component {
   state = {
+    urls: [],
     newURL: '',
-    urls: []
+    playingItem: null,
   }
 
   snackbarRef = React.createRef();
@@ -36,6 +40,22 @@ class PlayList extends React.Component {
     super();
     this._addURL = this._addURL.bind(this);
     this._onPlaylistAddURLChange = this._onPlaylistAddURLChange.bind(this);
+    this._handlePlayer = this._handlePlayer.bind(this);
+  }
+
+  _handlePlayer(index) {
+    if (index === this.state.playingItem) {
+      this.props.handlePlayer({
+        type: 'pause',
+      });
+      this.setState({ playingItem: null });
+    } else {
+      this.props.handlePlayer({
+        type: 'update',
+        value: this.state.urls[index]
+      });
+      this.setState({ playingItem: index });
+    }
   }
 
   _onPlaylistAddURLChange(e) {
@@ -62,15 +82,12 @@ class PlayList extends React.Component {
     }
   }
 
-  componentDidUpdate() {
-  }
-
   render() {
     const { classes } = this.props;
-    const { newURL, urls } = this.state;
+    const { playingItem, urls, newURL } = this.state;
     return (
       <Card>
-        <CardContent>
+        <CardContent className={classes.content}>
           <form className={classes.playlistAddBox} onSubmit={this._addURL}>
             <Snackbar ref={this.snackbarRef} />
             <TextField
@@ -84,7 +101,10 @@ class PlayList extends React.Component {
               <PlaylistAddIcon />
             </IconButton>
           </form>
-          <SamepleList urls={urls} />
+          <SamepleList
+            urls={urls}
+            handlePlayer={this._handlePlayer}
+            playingItem={playingItem} />
         </CardContent>
       </Card>
     );
