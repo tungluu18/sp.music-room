@@ -9,8 +9,9 @@ import {
 import { withStyles } from '@material-ui/core/styles';
 import { PlaylistAdd as PlaylistAddIcon } from '@material-ui/icons';
 
-import SamepleList from './SampleList';
+import SampleList from './SampleList';
 import Snackbar from './Snackbar';
+import { database } from '../services/firebase';
 
 const styles = ({
   playlistAddBox: {
@@ -31,7 +32,6 @@ class PlayList extends React.Component {
   state = {
     urls: [],
     newURL: '',
-    playingItem: null,
   }
 
   snackbarRef = React.createRef();
@@ -39,23 +39,17 @@ class PlayList extends React.Component {
   constructor() {
     super();
     this._addURL = this._addURL.bind(this);
+    this._removeURL = this._removeURL.bind(this);
     this._onPlaylistAddURLChange = this._onPlaylistAddURLChange.bind(this);
-    this._handlePlayer = this._handlePlayer.bind(this);
   }
 
-  _handlePlayer(index) {
-    if (index === this.state.playingItem) {
-      this.props.handlePlayer({
-        type: 'pause',
-      });
-      this.setState({ playingItem: null });
-    } else {
-      this.props.handlePlayer({
-        type: 'update',
-        value: this.state.urls[index]
-      });
-      this.setState({ playingItem: index });
+  componentDidMount() {
+    this.database = {
+      roomURLs: database.ref('rooms/0/urls'),
     }
+    this.database.roomURLs.on('value', snapshot => {
+      console.log(snapshot.val());
+    })
   }
 
   _onPlaylistAddURLChange(e) {
@@ -65,26 +59,44 @@ class PlayList extends React.Component {
   _addURL(e) {
     e.preventDefault();
     const canPlay = ReactPlayer.canPlay(this.state.newURL);
-    if (canPlay) {
-      this.snackbarRef.current._open({
-        variant: 'success',
-        message: 'Bài nhạc đã được thêm!'
-      });
-      this.setState({
-        newURL: '',
-        urls: [...this.state.urls, this.state.newURL]
-      });
-    } else {
+    const existed = this.state.urls.find(u => u === this.state.newURL);
+    if (!canPlay) {
       this.snackbarRef.current._open({
         variant: 'error',
         message: 'Link này không chơi được :<'
       });
+    } else if (!!existed) {
+      this.snackbarRef.current._open({
+        variant: 'info',
+        message: 'Bài nhạc này đã được thêm rồi mà :)',
+        duration: 2000,
+      })
+    } else {
+      this.snackbarRef.current._open({
+        variant: 'success',
+        message: 'Bài nhạc đã được thêm!',
+      });
+      this.database.roomURLs.set([...this.state.urls, this.state.newURL] || []);
+      this.setState({
+        newURL: '',
+        urls: [...this.state.urls, this.state.newURL]
+      });
     }
   }
 
+  _removeURL(index) {
+    if (this.props.playingSource === this.state.urls[index]) {
+      this.props.updatePlayURL(null);
+    }
+    this.database.roomURLs.set(this.state.urls.filter((_, i) => index !== i));
+    this.setState({
+      urls: this.state.urls.filter((_, i) => index !== i)
+    });
+  }
+
   render() {
-    const { classes } = this.props;
-    const { playingItem, urls, newURL } = this.state;
+    const { classes, updatePlayURL } = this.props;
+    const { urls, newURL } = this.state;
     return (
       <Card>
         <CardContent className={classes.content}>
@@ -95,16 +107,12 @@ class PlayList extends React.Component {
               placeholder="Thí chủ cho xin link"
               className={classes.playlistAddURL}
               onChange={this._onPlaylistAddURLChange}
-              value={newURL}
-            />
+              value={newURL} />
             <IconButton aria-label="search" type="submit">
               <PlaylistAddIcon />
             </IconButton>
           </form>
-          <SamepleList
-            urls={urls}
-            handlePlayer={this._handlePlayer}
-            playingItem={playingItem} />
+          <SampleList urls={urls} updatePlayURL={updatePlayURL} removeURL={this._removeURL} />
         </CardContent>
       </Card>
     );

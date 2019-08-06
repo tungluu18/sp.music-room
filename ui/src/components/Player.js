@@ -2,6 +2,8 @@ import React from 'react';
 import { Card, CardContent } from '@material-ui/core';
 import ReactPlayer from 'react-player';
 
+import { database } from '../services/firebase';
+
 class Player extends React.Component {
   constructor() {
     super()
@@ -9,6 +11,12 @@ class Player extends React.Component {
     this._onPause = this._onPause.bind(this);
     this._forceSeek = this._forceSeek.bind(this);
     this._forcePause = this._forcePause.bind(this);
+  }
+
+  componentDidMount() {
+    this.database = {
+      roomLogs: database.ref('rooms/0/logs'),
+    }
   }
 
   _forcePause() {
@@ -22,12 +30,23 @@ class Player extends React.Component {
 
   _onPause() {
     console.log('paused');
-    console.log(this.player.getCurrentTime());
+    const currentTime = this.player.getCurrentTime();
+    console.log(currentTime);
+
+    this.database.roomLogs.push().set({
+      type: 'pause',
+      time: currentTime,
+    });
   }
 
   _onSeek() {
     console.log('seek');
+    const currentTime = this.player.getCurrentTime();
     console.log(this.player.getCurrentTime());
+    this.database.roomLogs.push().set({
+      type: 'seek',
+      time: currentTime,
+    });
   }
 
   ref = player => {
