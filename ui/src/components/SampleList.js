@@ -10,7 +10,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-function SampleList({ urls, handlePlayer, playingItem }) {
+function SampleList({ urls, updatePlayURL, removeURL }) {
   const classes = useStyles();
 
   return (
@@ -20,8 +20,8 @@ function SampleList({ urls, handlePlayer, playingItem }) {
           <Divider variant="inset" component="li" />
           <SampleItem
             url={url}
-            isPlaying={playingItem === index}
-            handlePlay={() => handlePlayer(index)} />
+            updatePlayURL={() => updatePlayURL(url)}
+            removeURL={() => removeURL(index)} />
         </Fragment>
       ))}
     </List>
