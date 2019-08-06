@@ -39,8 +39,9 @@ const styles = ({
 class CustomSnackBar extends PureComponent {
   state = {
     isActive: false,
-    variant: 'info',
-    message: 'Oops'
+    variant: null,
+    message: null,
+    duration: null,
   }
 
   constructor() {
@@ -52,21 +53,25 @@ class CustomSnackBar extends PureComponent {
   _close() {
     this.setState({
       isActive: false,
+      variant: null,
+      message: null,
+      duration: null,
     })
   }
 
-  _open({ variant, message }) {
+  _open({ variant = 'info', message = 'Oops', duration = 1000}) {
     this.setState({
       isActive: true,
-      variant: variant || 'info',
-      message: message || 'Oops',
+      variant: variant,
+      message: message,
+      duration: duration,
     })
   }
 
   render() {
     const { classes } = this.props;
-    const { message, variant, isActive } = this.state;
-    const Icon = variantIcon[variant]
+    const { message, variant, isActive, duration } = this.state;
+    const Icon = variantIcon[variant || 'info']
 
     return (
       <Snackbar
@@ -74,7 +79,7 @@ class CustomSnackBar extends PureComponent {
           vertical: 'top',
           horizontal: 'center',
         }}
-        autoHideDuration={1000}
+        autoHideDuration={duration}
         onClose={this._close}
         open={isActive}
       >
