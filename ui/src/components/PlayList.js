@@ -30,7 +30,7 @@ const styles = ({
 
 class PlayList extends React.Component {
   state = {
-    urls: [],
+    urls: null,
     newURL: '',
   }
 
@@ -48,7 +48,7 @@ class PlayList extends React.Component {
       roomURLs: database.ref('rooms/0/urls'),
     }
     this.database.roomURLs.on('value', snapshot => {
-      this.setState({ urls: snapshot.val() });
+      this.setState({ urls: snapshot.val() || [] });
     })
   }
 
@@ -86,10 +86,7 @@ class PlayList extends React.Component {
               variant: 'success',
               message: 'Bài nhạc đã được thêm!',
             });
-            this.setState({
-              newURL: '',
-              urls: [...this.state.urls, this.state.newURL]
-            });
+            this.setState({ newURL: '' });
           }
         });
     }
@@ -107,10 +104,6 @@ class PlayList extends React.Component {
             variant: 'error',
             message: 'Oops, thử lại sau nhé :<',
             duration: 2000,
-          });
-        } else {
-          this.setState({
-            urls: this.state.urls.filter((_, i) => index !== i)
           });
         }
       });

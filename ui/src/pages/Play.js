@@ -1,24 +1,82 @@
-import React, { useState, createRef } from 'react';
+import React, { createRef } from 'react';
 import { Grid } from '@material-ui/core';
+import uuid from 'uuid/v4';
 import { PlayList, Player } from '../components';
+import { database } from '../services/firebase';
 
-function PlayPage() {
-  const [playingSource, setPlayingSource] = useState(null);
+class PlayPage extends React.Component {
+  state = {
+    playing: null,
+    init: false,
+  }
 
-  const playerRef = createRef();
+  constructor() {
+    super();
+    this.uuid = uuid();
+    this._updatePlayingSource = this._updatePlayingSource.bind(this);
+    this._updatePlayingStatus = this._updatePlayingStatus.bind(this);
+  }
 
-  return (
-    <Grid container spacing={1} justify='flex-start' style={{ padding: '10px' }}>
-      <Grid item xs={12} md={8}>
-        <Player ref={playerRef} url={playingSource} />
+  playerRef = createRef();
+
+  componentDidMount() {
+    this.database = {
+      roomPlaying: database.ref('rooms/0/playing'),
+    }
+
+    this.database.roomPlaying.once('value', snapshot => {
+      if (!snapshot.exists()) return;
+      const playing = snapshot.val();
+      this.setState({ init: true });
+      this._updatePlayingSource(playing.url);
+    });
+
+    this.database.roomPlaying.on('value', snapshot => {
+      if (!snapshot.exists() || !this.state.init) return;
+      const playing = snapshot.val();
+      if (playing.uuid === this.uuid) return;
+      switch (playing.status) {
+        case 'pause':
+          this.playerRef.current._forcePause();
+          break;
+        case 'seek':
+          this.playerRef.current._forceSeek(playing.time);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  _updatePlayingSource(url) {
+    this.setState({ playing: { ...this.state.playing, url } });
+  }
+
+  _updatePlayingStatus({ status, time }) {
+    this.database.roomPlaying.update({
+      status, time, uuid: this.uuid
+    });
+  }
+
+  render() {
+    const { playing } = this.state;
+    const url = (playing || {}).url;
+    return (
+      <Grid container spacing={1} justify='flex-start' style={{ padding: '10px' }}>
+        <Grid item xs={12} md={8}>
+          <Player
+            ref={this.playerRef}
+            url={url}
+            updatePlayingStatus={this._updatePlayingStatus} />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <PlayList
+            playingSource={url}
+            updatePlayURL={this._updatePlayingSource} />
+        </Grid>
       </Grid>
-      <Grid item xs={12} md={4}>
-        <PlayList
-          playingSource={playingSource}
-          updatePlayURL={setPlayingSource} />
-      </Grid>
-    </Grid>
-  );
+    );
+  }
 }
 
 export default PlayPage;

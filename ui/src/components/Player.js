@@ -5,6 +5,10 @@ import ReactPlayer from 'react-player';
 import { database } from '../services/firebase';
 
 class Player extends React.Component {
+  state = {
+    forcing: false,
+  }
+
   constructor() {
     super()
     this._onSeek = this._onSeek.bind(this);
@@ -15,17 +19,21 @@ class Player extends React.Component {
 
   componentDidMount() {
     this.database = {
-      roomLogs: database.ref('rooms/0/logs'),
+      roomPlaying: database.ref('rooms/0/playing'),
     }
   }
 
   _forcePause() {
-    this.player.getInternalPlayer().pauseVideo();
+    this.setState({ forcing: true }, () => {
+      this.player.getInternalPlayer().pauseVideo();
+    })
   }
 
   _forceSeek(seconds) {
-    this.player.seekTo(seconds, 'second');
-    this.player.getInternalPlayer().playVideo();
+    this.setState({ forcing: true }, () => {
+      this.player.seekTo(seconds, 'second');
+      this.player.getInternalPlayer().playVideo();
+    })
   }
 
   _onPause() {
@@ -33,20 +41,27 @@ class Player extends React.Component {
     const currentTime = this.player.getCurrentTime();
     console.log(currentTime);
 
-    this.database.roomLogs.push().set({
-      type: 'pause',
-      time: currentTime,
-    });
+    if (this.state.forcing) {
+      this.setState({ forcing: false });
+    } else {
+      this.props.updatePlayingStatus({ status: 'pause', time: currentTime });
+    }
+    // this.database.roomLogs.push().set({
+    //   type: 'pause',
+    //   time: currentTime,
+    // });
   }
 
   _onSeek() {
     console.log('seek');
     const currentTime = this.player.getCurrentTime();
-    console.log(this.player.getCurrentTime());
-    this.database.roomLogs.push().set({
-      type: 'seek',
-      time: currentTime,
-    });
+    console.log(currentTime);
+
+    if (this.state.forcing) {
+      this.setState({ forcing: false });
+    } else {
+      this.props.updatePlayingStatus({ status: 'seek', time: currentTime });
+    }
   }
 
   ref = player => {

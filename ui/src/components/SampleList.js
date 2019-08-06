@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { List, Divider } from '@material-ui/core';
+import { List, Divider, LinearProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import SampleItem from './SampleItem';
 
@@ -7,12 +7,16 @@ const useStyles = makeStyles(theme => ({
   root: {
     maxHeight: '100vh',
     overflow: 'auto',
+  },
+  progressBar: {
+    height: '0.1rem',
   }
 }))
 
 function SampleList({ urls, updatePlayURL, removeURL }) {
   const classes = useStyles();
-
+  console.log('urls: ', urls);
+  if (!urls) return <LinearProgress className={classes.progressBar} />
   return (
     <List className={classes.root}>
       {urls.map((url, index) => (
