@@ -5,7 +5,7 @@ import {
   Typography,
   ListItem,
   IconButton,
-  ListItemSecondaryAction,
+  Tooltip,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -13,6 +13,7 @@ import {
   Delete as DeleteIcon,
   KeyboardArrowUp as UpIcon,
   KeyboardArrowDown as DownIcon,
+  Link as LinkIcon,
 } from '@material-ui/icons';
 import { red } from '@material-ui/core/colors';
 
@@ -53,7 +54,7 @@ const useStyles = makeStyles(theme => ({
 function SampleItem({ url, updatePlayURL, removeURL }) {
   const classes = useStyles();
   return (
-    <ListItem dense button className={classes.root} onClick={updatePlayURL}>
+    <ListItem dense className={classes.root}>
       <div className={classes.wrapper}>
         <IconButton className={classes.btn}>
           <UpIcon />
@@ -67,16 +68,26 @@ function SampleItem({ url, updatePlayURL, removeURL }) {
           <Avatar className={classes.avatar}>
             <MusicVideo className={classes.icon} />
           </Avatar>
-          <Typography variant="body1" className={classes.text}>
-            <a href={url} target="_blank">{url}</a>
+          <Typography variant="h5" className={classes.text}>
+            'KATIE –FUTURE LOVE.(SUB ESPAÑOL)'
           </Typography>
         </div>
+        <div className={classes.controls}>
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            <Tooltip title={url}>
+              <IconButton aria-label="link" className={classes.btn}>
+                <LinkIcon />
+              </IconButton>
+            </Tooltip>
+          </a>
+          <Tooltip title="Bỏ bài nhạc">
+            <IconButton aria-label="delete" className={classes.btn} onClick={removeURL}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </div>
       </div>
-      <ListItemSecondaryAction className={classes.controls}>
-        <IconButton aria-label="delete" className={classes.btn} onClick={removeURL}>
-          <DeleteIcon fontSize="small"/>
-        </IconButton>
-      </ListItemSecondaryAction>
+
     </ListItem >
   );
 }

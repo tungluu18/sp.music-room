@@ -64,7 +64,7 @@ class PlayPage extends React.Component {
       uuid: this.uuid,
       last_update_timestamp: (new Date()).getTime(),
     }, () => {
-      this.playerRef.current._forceSeek(0);
+      if (!!url) this.playerRef.current._forceSeek(0);
     });
   }
 

@@ -1,6 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { Card, CardContent } from '@material-ui/core';
+import { Card, CardContent, CardMedia } from '@material-ui/core';
 import ReactPlayer from 'react-player';
 
 import { database } from '../services/firebase';
@@ -66,7 +65,7 @@ class Player extends React.Component {
   }
 
   _onReady() {
-    const {continuePlayTime} = this.props;
+    const { continuePlayTime } = this.props;
     if (!!continuePlayTime) { this._forceSeek(continuePlayTime); }
   }
 
@@ -79,16 +78,20 @@ class Player extends React.Component {
     return (
       <Card style={{ height: '30vw' }}>
         <CardContent style={{ padding: 0, height: '100%' }}>
-          <ReactPlayer url={url}
-            controls
-            ref={this.ref}
-            onReady={this._onReady}
-            onPlay={this._onSeek}
-            onPause={this._onPause}
-            style={{ margin: 'auto' }}
-            width='100%'
-            height='100%'
-          />
+          {(!!url)
+            ? <ReactPlayer url={url}
+              controls
+              ref={this.ref}
+              onReady={this._onReady}
+              onPlay={this._onSeek}
+              onPause={this._onPause}
+              style={{ margin: 'auto' }}
+              width='100%'
+              height='100%' />
+            : <CardMedia
+              style={{ height: '100%', width: '100%', backgroundSize: 'contain' }}
+              image={require('../assets/images/cat.png')} />
+          }
         </CardContent>
       </Card>
     )
