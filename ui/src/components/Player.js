@@ -1,10 +1,14 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent } from '@material-ui/core';
 import ReactPlayer from 'react-player';
 
 import { database } from '../services/firebase';
 
 class Player extends React.Component {
+  /**
+   * force actions will not broadcast to other peers: forcePause, forceSeek
+   */
   state = {
     forcing: false,
   }
@@ -13,6 +17,7 @@ class Player extends React.Component {
     super()
     this._onSeek = this._onSeek.bind(this);
     this._onPause = this._onPause.bind(this);
+    this._onReady = this._onReady.bind(this);
     this._forceSeek = this._forceSeek.bind(this);
     this._forcePause = this._forcePause.bind(this);
   }
@@ -46,10 +51,6 @@ class Player extends React.Component {
     } else {
       this.props.updatePlayingStatus({ status: 'pause', time: currentTime });
     }
-    // this.database.roomLogs.push().set({
-    //   type: 'pause',
-    //   time: currentTime,
-    // });
   }
 
   _onSeek() {
@@ -64,6 +65,11 @@ class Player extends React.Component {
     }
   }
 
+  _onReady() {
+    const {continuePlayTime} = this.props;
+    if (!!continuePlayTime) { this._forceSeek(continuePlayTime); }
+  }
+
   ref = player => {
     this.player = player;
   }
@@ -74,9 +80,9 @@ class Player extends React.Component {
       <Card style={{ height: '30vw' }}>
         <CardContent style={{ padding: 0, height: '100%' }}>
           <ReactPlayer url={url}
-            ref={this.ref}
             controls
-            playing
+            ref={this.ref}
+            onReady={this._onReady}
             onPlay={this._onSeek}
             onPause={this._onPause}
             style={{ margin: 'auto' }}

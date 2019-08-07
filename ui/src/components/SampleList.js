@@ -15,7 +15,6 @@ const useStyles = makeStyles(theme => ({
 
 function SampleList({ urls, updatePlayURL, removeURL }) {
   const classes = useStyles();
-  console.log('urls: ', urls);
   if (!urls) return <LinearProgress className={classes.progressBar} />
   return (
     <List className={classes.root}>

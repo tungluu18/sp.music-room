@@ -27,13 +27,21 @@ class PlayPage extends React.Component {
     this.database.roomPlaying.once('value', snapshot => {
       if (!snapshot.exists()) return;
       const playing = snapshot.val();
-      this.setState({ init: true });
-      this._updatePlayingSource(playing.url);
+      if (!!playing.last_update_timestamp) {
+        const currentTime = (new Date()).getTime();
+        const playedTime = (currentTime - playing.last_update_timestamp) / 1000;
+        const currentPlayingTime = playing.time + playedTime;
+        playing.continuePlayTime = currentPlayingTime;
+      }
+      this.setState({ init: true, playing }, () => {
+        // if (playing.status === 'pause') { this.playerRef.current._forcePause(); }
+      });
     });
 
     this.database.roomPlaying.on('value', snapshot => {
       if (!snapshot.exists() || !this.state.init) return;
       const playing = snapshot.val();
+      this.setState({ playing });
       if (playing.uuid === this.uuid) return;
       switch (playing.status) {
         case 'pause':
@@ -49,24 +57,35 @@ class PlayPage extends React.Component {
   }
 
   _updatePlayingSource(url) {
-    this.setState({ playing: { ...this.state.playing, url } });
+    this.database.roomPlaying.update({
+      url,
+      status: 'seek',
+      time: 0,
+      uuid: this.uuid,
+      last_update_timestamp: (new Date()).getTime(),
+    }, () => {
+      this.playerRef.current._forceSeek(0);
+    });
   }
 
   _updatePlayingStatus({ status, time }) {
     this.database.roomPlaying.update({
-      status, time, uuid: this.uuid
+      status, time,
+      uuid: this.uuid,
+      last_update_timestamp: (new Date()).getTime()
     });
   }
 
   render() {
-    const { playing } = this.state;
+    const { playing, init } = this.state;
     const url = (playing || {}).url;
     return (
       <Grid container spacing={1} justify='flex-start' style={{ padding: '10px' }}>
         <Grid item xs={12} md={8}>
           <Player
-            ref={this.playerRef}
             url={url}
+            ref={this.playerRef}
+            continuePlayTime={init && playing.continuePlayTime}
             updatePlayingStatus={this._updatePlayingStatus} />
         </Grid>
         <Grid item xs={12} md={4}>
