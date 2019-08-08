@@ -9,15 +9,19 @@ class Player extends React.Component {
    * force actions will not broadcast to other peers: forcePause, forceSeek
    */
   state = {
-    forcing: false,
+    forcing: {
+      active: false,
+      action: null,
+      time: null,
+    },
   }
 
   constructor() {
     super()
-    this._onSeek = this._onSeek.bind(this);
+    this._onPlay = this._onPlay.bind(this);
     this._onPause = this._onPause.bind(this);
     this._onReady = this._onReady.bind(this);
-    this._forceSeek = this._forceSeek.bind(this);
+    this._forcePlay = this._forcePlay.bind(this);
     this._forcePause = this._forcePause.bind(this);
   }
 
@@ -25,19 +29,24 @@ class Player extends React.Component {
     this.database = {
       roomPlaying: database.ref('rooms/0/playing'),
     }
+    window.test = this;
   }
 
   _forcePause() {
-    this.setState({ forcing: true }, () => {
+    this.setState({
+      forcing: { active: true, action: 'pause' }
+    }, () => {
       this.player.getInternalPlayer().pauseVideo();
     })
   }
 
-  _forceSeek(seconds) {
-    this.setState({ forcing: true }, () => {
+  _forcePlay(seconds) {
+    this.setState({
+      forcing: { active: true, action: 'play', time: seconds }
+    }, () => {
       this.player.seekTo(seconds, 'second');
       this.player.getInternalPlayer().playVideo();
-    })
+    });
   }
 
   _onPause() {
@@ -45,28 +54,35 @@ class Player extends React.Component {
     const currentTime = this.player.getCurrentTime();
     console.log(currentTime);
 
-    if (this.state.forcing) {
-      this.setState({ forcing: false });
+    const { forcing } = this.state;
+    if (forcing.active) {
+      if (forcing.action === 'pause') {
+        this.setState({ forcing: { active: false } })
+      };
     } else {
       this.props.updatePlayingStatus({ status: 'pause', time: currentTime });
     }
   }
 
-  _onSeek() {
-    console.log('seek');
+  _onPlay() {
+    console.log('play');
     const currentTime = this.player.getCurrentTime();
     console.log(currentTime);
 
-    if (this.state.forcing) {
-      this.setState({ forcing: false });
+    const { forcing } = this.state;
+    if (forcing.active) {
+      if (forcing.action === 'play' && Math.abs(forcing.time - currentTime) <= 1) {
+        this.setState({ forcing: { active: false } });
+      }
     } else {
-      this.props.updatePlayingStatus({ status: 'seek', time: currentTime });
+      this.props.updatePlayingStatus({ status: 'play', time: currentTime });
     }
   }
 
   _onReady() {
-    const { continuePlayTime } = this.props;
-    if (!!continuePlayTime) { this._forceSeek(continuePlayTime); }
+    const { continueState } = this.props;
+    if (!continueState) { return; }
+    if (continueState.status === 'play') { this._forcePlay(continueState.time); }
   }
 
   ref = player => {
@@ -83,7 +99,7 @@ class Player extends React.Component {
               controls
               ref={this.ref}
               onReady={this._onReady}
-              onPlay={this._onSeek}
+              onPlay={this._onPlay}
               onPause={this._onPause}
               style={{ margin: 'auto' }}
               width='100%'

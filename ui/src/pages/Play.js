@@ -7,6 +7,7 @@ import { database } from '../services/firebase';
 class PlayPage extends React.Component {
   state = {
     playing: null,
+    continueStateState: null,
     init: false,
   }
 
@@ -31,11 +32,12 @@ class PlayPage extends React.Component {
         const currentTime = (new Date()).getTime();
         const playedTime = (currentTime - playing.last_update_timestamp) / 1000;
         const currentPlayingTime = playing.time + playedTime;
-        playing.continuePlayTime = currentPlayingTime;
+        this.setState({
+          playing,
+          init: true,
+          continueState: { time: currentPlayingTime, status: playing.status },
+        });
       }
-      this.setState({ init: true, playing }, () => {
-        // if (playing.status === 'pause') { this.playerRef.current._forcePause(); }
-      });
     });
 
     this.database.roomPlaying.on('value', snapshot => {
@@ -47,8 +49,8 @@ class PlayPage extends React.Component {
         case 'pause':
           this.playerRef.current._forcePause();
           break;
-        case 'seek':
-          this.playerRef.current._forceSeek(playing.time);
+        case 'play':
+          this.playerRef.current._forcePlay(playing.time);
           break;
         default:
           break;
@@ -59,12 +61,10 @@ class PlayPage extends React.Component {
   _updatePlayingSource(url) {
     this.database.roomPlaying.update({
       url,
-      status: 'seek',
+      status: url && 'play',
       time: 0,
-      uuid: this.uuid,
+      uuid: null,
       last_update_timestamp: (new Date()).getTime(),
-    }, () => {
-      if (!!url) this.playerRef.current._forceSeek(0);
     });
   }
 
@@ -72,12 +72,12 @@ class PlayPage extends React.Component {
     this.database.roomPlaying.update({
       status, time,
       uuid: this.uuid,
-      last_update_timestamp: (new Date()).getTime()
+      last_update_timestamp: (new Date()).getTime(),
     });
   }
 
   render() {
-    const { playing, init } = this.state;
+    const { playing, init, continueState } = this.state;
     const url = (playing || {}).url;
     return (
       <Grid container spacing={1} justify='flex-start' style={{ padding: '10px' }}>
@@ -85,7 +85,7 @@ class PlayPage extends React.Component {
           <Player
             url={url}
             ref={this.playerRef}
-            continuePlayTime={init && playing.continuePlayTime}
+            continueState={init && continueState}
             updatePlayingStatus={this._updatePlayingStatus} />
         </Grid>
         <Grid item xs={12} md={4}>

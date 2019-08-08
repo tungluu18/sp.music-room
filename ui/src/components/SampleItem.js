@@ -14,6 +14,7 @@ import {
   KeyboardArrowUp as UpIcon,
   KeyboardArrowDown as DownIcon,
   Link as LinkIcon,
+  PlayArrow as PlayIcon,
 } from '@material-ui/icons';
 import { red } from '@material-ui/core/colors';
 
@@ -73,6 +74,11 @@ function SampleItem({ url, updatePlayURL, removeURL }) {
           </Typography>
         </div>
         <div className={classes.controls}>
+          <Tooltip title="Chơi nó ngay">
+            <IconButton aria-label="play-arrow" onClick={updatePlayURL}>
+              <PlayIcon />
+            </IconButton>
+          </Tooltip>
           <a href={url} target="_blank" rel="noopener noreferrer">
             <Tooltip title={url}>
               <IconButton aria-label="link" className={classes.btn}>
