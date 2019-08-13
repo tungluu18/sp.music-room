@@ -13,7 +13,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-function SampleList({ urls, updatePlayURL, removeURL }) {
+function SampleList({ urls, updatePlayURL, removeURL, rearrangeURLs }) {
   const classes = useStyles();
   if (!urls) return <LinearProgress className={classes.progressBar} />
   return (
@@ -24,7 +24,8 @@ function SampleList({ urls, updatePlayURL, removeURL }) {
           <SampleItem
             url={url}
             updatePlayURL={() => updatePlayURL(url)}
-            removeURL={() => removeURL(index)} />
+            removeURL={() => removeURL(index)}
+            rearrangeURLs={rearrangeURLs(index)} />
         </Fragment>
       ))}
     </List>

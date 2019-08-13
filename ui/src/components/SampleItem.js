@@ -18,6 +18,8 @@ import {
 } from '@material-ui/icons';
 import { red } from '@material-ui/core/colors';
 
+import { extractVideoId } from '../services/youtube';
+
 const useStyles = makeStyles(theme => ({
   root: {
   },
@@ -52,15 +54,15 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function SampleItem({ url, updatePlayURL, removeURL }) {
+function SampleItem({ url, updatePlayURL, removeURL, rearrangeURLs }) {
   const classes = useStyles();
   return (
     <ListItem dense className={classes.root}>
       <div className={classes.wrapper}>
-        <IconButton className={classes.btn}>
+        <IconButton className={classes.btn} onClick={() => rearrangeURLs('up')}>
           <UpIcon />
         </IconButton>
-        <IconButton className={classes.btn}>
+        <IconButton className={classes.btn} onClick={() => rearrangeURLs('down')}>
           <DownIcon />
         </IconButton>
       </div>
@@ -70,7 +72,7 @@ function SampleItem({ url, updatePlayURL, removeURL }) {
             <MusicVideo className={classes.icon} />
           </Avatar>
           <Typography variant="h5" className={classes.text}>
-            'KATIE –FUTURE LOVE.(SUB ESPAÑOL)'
+            {extractVideoId(url)}
           </Typography>
         </div>
         <div className={classes.controls}>

@@ -4,7 +4,7 @@ import uuid from 'uuid/v4';
 import { PlayList, Player } from '../components';
 import { database } from '../services/firebase';
 
-const roomRef = 'room/0'
+const roomRef = 'rooms/0'
 
 class PlayPage extends React.Component {
   state = {

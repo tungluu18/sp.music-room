@@ -40,6 +40,7 @@ class PlayList extends React.Component {
     super();
     this._addURL = this._addURL.bind(this);
     this._removeURL = this._removeURL.bind(this);
+    this._rearrangeURLs = this._rearrangeURLs.bind(this);
     this._onPlaylistAddURLChange = this._onPlaylistAddURLChange.bind(this);
   }
 
@@ -54,6 +55,22 @@ class PlayList extends React.Component {
 
   _onPlaylistAddURLChange(e) {
     this.setState({ newURL: e.target.value });
+  }
+
+  _rearrangeURLs(index) {
+    return (move) => {
+      if (!move) return;
+      console.log('rearrange func:', index, move)
+      const urls = this.state.urls.slice();
+      if (move === 'up' && index > 0) {
+        [urls[index - 1], urls[index]] = [urls[index], urls[index - 1]];
+        this.database.roomURLs.set(urls);
+      }
+      if (move === 'down' && index + 1 < urls.length) {
+        [urls[index + 1], urls[index]] = [urls[index], urls[index + 1]];
+        this.database.roomURLs.set(urls);
+      }
+    }
   }
 
   _addURL(e) {
@@ -127,7 +144,10 @@ class PlayList extends React.Component {
               <PlaylistAddIcon />
             </IconButton>
           </form>
-          <SampleList urls={urls} updatePlayURL={updatePlayURL} removeURL={this._removeURL} />
+          <SampleList
+            urls={urls} updatePlayURL={updatePlayURL}
+            removeURL={this._removeURL}
+            rearrangeURLs={this._rearrangeURLs} />
         </CardContent>
       </Card>
     );
