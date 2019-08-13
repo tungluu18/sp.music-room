@@ -50,9 +50,9 @@ class Player extends React.Component {
   }
 
   _onPause() {
-    console.log('paused');
+    // console.log('paused');
     const currentTime = this.player.getCurrentTime();
-    console.log(currentTime);
+    // console.log(currentTime);
 
     const { forcing } = this.state;
     if (forcing.active) {
@@ -65,9 +65,9 @@ class Player extends React.Component {
   }
 
   _onPlay() {
-    console.log('play');
+    // console.log('play');
     const currentTime = this.player.getCurrentTime();
-    console.log(currentTime);
+    // console.log(currentTime);
 
     const { forcing } = this.state;
     if (forcing.active) {

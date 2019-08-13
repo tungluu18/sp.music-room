@@ -4,6 +4,8 @@ import uuid from 'uuid/v4';
 import { PlayList, Player } from '../components';
 import { database } from '../services/firebase';
 
+const roomRef = 'room/0'
+
 class PlayPage extends React.Component {
   state = {
     playing: null,
@@ -22,7 +24,7 @@ class PlayPage extends React.Component {
 
   componentDidMount() {
     this.database = {
-      roomPlaying: database.ref('rooms/0/playing'),
+      roomPlaying: database.ref(`${roomRef}/playing`),
     }
 
     this.database.roomPlaying.once('value', snapshot => {
@@ -52,6 +54,11 @@ class PlayPage extends React.Component {
         case 'play':
           this.playerRef.current._forcePlay(playing.time);
           break;
+        case 'ready':
+          this.setState({
+            continueState: { time: 0, status: 'play' }
+          });
+          break;
         default:
           break;
       }
@@ -61,7 +68,7 @@ class PlayPage extends React.Component {
   _updatePlayingSource(url) {
     this.database.roomPlaying.update({
       url,
-      status: url && 'play',
+      status: url && 'ready',
       time: 0,
       uuid: null,
       last_update_timestamp: (new Date()).getTime(),
