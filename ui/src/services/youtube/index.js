@@ -3,13 +3,14 @@ const YOUTUBE_VIDEO_URI = 'https://www.youtube.com/watch'
 
 export const getInfo = async (videoId) => {
   const video_url = `${YOUTUBE_VIDEO_URI}?v=${videoId}`;
-  const resp = await fetch(`https://crossorigin.me/${YOUTUBE_OEMBED_URI}?format=json&url=${video_url}`, {
+  const resp = await fetch(`https://bypasscors.herokuapp.com/api/?url=${YOUTUBE_OEMBED_URI}?url=${video_url}&format=json`, {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     }
-  })
-  console.log(resp)
+  });
+  const data = await resp.json();
+  return data;
 }
 
 export const extractVideoId = (url) => {

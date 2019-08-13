@@ -6,11 +6,6 @@ import { Play } from './pages';
 function App() {
   return (
     <Fragment>
-      <AppBar position="static">
-        <Typography variant="h4">
-          Music Room
-        </Typography>
-      </AppBar>
       <Play />
     </Fragment>
   );

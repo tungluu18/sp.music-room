@@ -106,7 +106,7 @@ class Player extends React.Component {
               height='100%' />
             : <CardMedia
               style={{ height: '100%', width: '100%', backgroundSize: 'contain' }}
-              image={require('../assets/images/cat.png')} />
+              image="https://www.nicepng.com/png/detail/131-1312998_we-bare-bears-bear-party-we-bare-bears.png" />
           }
         </CardContent>
       </Card>
