@@ -6,6 +6,7 @@ import {
   ListItem,
   IconButton,
   Tooltip,
+  Chip,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import {
@@ -54,7 +55,8 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-function SampleItem({ url, updatePlayURL, removeURL, rearrangeURLs }) {
+function SampleItem({ url, updatePlayURL, removeURL, rearrangeURLs, isPlaying }) {
+  isPlaying = true
   const classes = useStyles();
   return (
     <ListItem dense className={classes.root}>
@@ -76,6 +78,9 @@ function SampleItem({ url, updatePlayURL, removeURL, rearrangeURLs }) {
           </Typography>
         </div>
         <div className={classes.controls}>
+          {isPlaying ?
+            <Chip label="playing......" size="small" color="primary" icon={<PlayIcon />} />
+            : null}
           <Tooltip title="Chơi nó ngay">
             <IconButton aria-label="play-arrow" onClick={updatePlayURL}>
               <PlayIcon />
