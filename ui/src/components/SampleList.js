@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { List, Divider, LinearProgress } from '@material-ui/core';
+import { List, LinearProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import SampleItem from './SampleItem';
 
@@ -13,17 +13,16 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-function SampleList({ urls, updatePlayURL, removeURL, rearrangeURLs }) {
+function SampleList({ tracks, updatePlayURL, removeURL, rearrangeURLs }) {
   const classes = useStyles();
-  if (!urls) return <LinearProgress className={classes.progressBar} />
+  if (!tracks) return <LinearProgress className={classes.progressBar} />
   return (
     <List className={classes.root}>
-      {urls.map((url, index) => (
+      {tracks.map((track, index) => (
         <Fragment key={index}>
-          <Divider variant="inset" component="li" />
           <SampleItem
-            url={url}
-            updatePlayURL={() => updatePlayURL(url)}
+            track={track}
+            updatePlayURL={() => updatePlayURL(track.url)}
             removeURL={() => removeURL(index)}
             rearrangeURLs={rearrangeURLs(index)} />
         </Fragment>

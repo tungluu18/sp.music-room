@@ -1,8 +1,30 @@
 import React from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import { Card, CardContent, CardMedia } from '@material-ui/core';
 import ReactPlayer from 'react-player';
 
 import { database } from '../services/firebase';
+
+const styles = theme => ({
+  root: {
+    width: '100%',
+  },
+  playerBox: {
+    position: 'relative',
+    paddingTop: '56.25%',
+    width: '100%',
+  },
+  player: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  coverBox: {
+    height: '100%',
+    width: '100%',
+    backgroundSize: 'cover',
+  }
+});
 
 class Player extends React.Component {
   /**
@@ -23,6 +45,7 @@ class Player extends React.Component {
     this._onReady = this._onReady.bind(this);
     this._forcePlay = this._forcePlay.bind(this);
     this._forcePause = this._forcePause.bind(this);
+    this._onEnded = this._onEnded.bind(this);
   }
 
   componentDidMount() {
@@ -30,6 +53,10 @@ class Player extends React.Component {
       roomPlaying: database.ref('rooms/0/playing'),
     }
     window.test = this;
+  }
+
+  _onEnded() {
+    console.log('this');
   }
 
   _forcePause() {
@@ -50,9 +77,7 @@ class Player extends React.Component {
   }
 
   _onPause() {
-    // console.log('paused');
     const currentTime = this.player.getCurrentTime();
-    // console.log(currentTime);
 
     const { forcing } = this.state;
     if (forcing.active) {
@@ -65,9 +90,7 @@ class Player extends React.Component {
   }
 
   _onPlay() {
-    // console.log('play');
     const currentTime = this.player.getCurrentTime();
-    // console.log(currentTime);
 
     const { forcing } = this.state;
     if (forcing.active) {
@@ -90,28 +113,29 @@ class Player extends React.Component {
   }
 
   render() {
-    const { url } = this.props;
+    const { url, classes, nextPlay } = this.props;
     return (
-      <Card style={{ height: '30vw' }}>
-        <CardContent style={{ padding: 0, height: '100%' }}>
-          {(!!url)
-            ? <ReactPlayer url={url}
-              controls
-              ref={this.ref}
-              onReady={this._onReady}
-              onPlay={this._onPlay}
-              onPause={this._onPause}
-              style={{ margin: 'auto' }}
-              width='100%'
-              height='100%' />
-            : <CardMedia
-              style={{ height: '100%', width: '100%', backgroundSize: 'contain' }}
-              image="https://www.nicepng.com/png/detail/131-1312998_we-bare-bears-bear-party-we-bare-bears.png" />
-          }
+      <Card className={classes.root}>
+        <CardContent className={classes.playerBox}>
+        {(!!url)
+          ? <ReactPlayer url={url}
+            controls
+            ref={this.ref}
+            onReady={this._onReady}
+            onPlay={this._onPlay}
+            onPause={this._onPause}
+            onEnded={nextPlay}
+            className={classes.player}
+            width="98%"
+            height="100%" />
+          : <CardMedia
+            className={classes.coverInbox}
+            image="https://www.littlestepsasia.com/sites/default/files/imagecache/article_node_image/event/hero/we-bare-bears-singapore.png" />
+        }
         </CardContent>
       </Card>
     )
   }
 }
 
-export default Player;
+export default withStyles(styles)(Player);

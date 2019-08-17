@@ -2,7 +2,6 @@ import React from 'react';
 import ReactPlayer from 'react-player';
 import {
   Card,
-  CardContent,
   TextField,
   IconButton,
 } from '@material-ui/core';
@@ -12,6 +11,9 @@ import { PlaylistAdd as PlaylistAddIcon } from '@material-ui/icons';
 import SampleList from './SampleList';
 import Snackbar from './Snackbar';
 import { database } from '../services/firebase';
+import { getInfo, extractId } from '../services/youtube';
+
+import Cache from '../utils/cache';
 
 const styles = ({
   playlistAddBox: {
@@ -30,8 +32,9 @@ const styles = ({
 
 class PlayList extends React.Component {
   state = {
-    urls: null,
+    tracks: null,
     newURL: '',
+    nextPlayMode: 'auto',
   }
 
   snackbarRef = React.createRef();
@@ -47,10 +50,15 @@ class PlayList extends React.Component {
   componentDidMount() {
     this.database = {
       roomURLs: database.ref('rooms/0/urls'),
-    }
-    this.database.roomURLs.on('value', snapshot => {
-      this.setState({ urls: snapshot.val() || [] });
-    })
+    };
+    this.trackCache = new Cache(_fetchTrackInfo);
+    window.playlist = this;
+
+    this.database.roomURLs.on('value', async snapshot => {
+      const urls = snapshot.val() || [];
+      const tracks = await Promise.all(urls.map(url => this.trackCache.get(url)));
+      this.setState({ tracks });
+    });
   }
 
   _onPlaylistAddURLChange(e) {
@@ -60,8 +68,7 @@ class PlayList extends React.Component {
   _rearrangeURLs(index) {
     return (move) => {
       if (!move) return;
-      console.log('rearrange func:', index, move)
-      const urls = this.state.urls.slice();
+      const urls = this.state.tracks.map(track => track.url);
       if (move === 'up' && index > 0) {
         [urls[index - 1], urls[index]] = [urls[index], urls[index - 1]];
         this.database.roomURLs.set(urls);
@@ -73,10 +80,21 @@ class PlayList extends React.Component {
     }
   }
 
+  _nextPlay() {
+    const { updatePlayURL, playingSource } = this.props;
+    const { nextPlayMode, tracks } = this.state;
+    const index = tracks.findIndex(track => track.url === playingSource);
+    const nTracks = tracks.length
+    if (nextPlayMode === 'auto') {
+      const nextTrack = tracks[(index + 1) % nTracks];
+      updatePlayURL(nextTrack.url);
+    }
+  }
+
   _addURL(e) {
     e.preventDefault();
     const canPlay = ReactPlayer.canPlay(this.state.newURL);
-    const existed = this.state.urls.find(u => u === this.state.newURL);
+    const existed = this.state.tracks.find(track => track.url === this.state.newURL);
     if (!canPlay) {
       this.snackbarRef.current._open({
         variant: 'error',
@@ -89,49 +107,47 @@ class PlayList extends React.Component {
         duration: 2000,
       })
     } else {
-      this.database.roomURLs.set(
-        [...this.state.urls, this.state.newURL] || [],
-        (error) => {
-          if (error) {
-            this.snackbarRef.current._open({
-              variant: 'error',
-              message: 'Oops sr, có gì đấy không đúng xảy ra rồi :<',
-              duration: 2000,
-            });
-          } else {
-            this.snackbarRef.current._open({
-              variant: 'success',
-              message: 'Bài nhạc đã được thêm!',
-            });
-            this.setState({ newURL: '' });
-          }
-        });
+      const urls = this.state.tracks.map(track => track.url);
+      this.database.roomURLs.set([...urls, this.state.newURL] || [], (error) => {
+        if (error) {
+          this.snackbarRef.current._open({
+            variant: 'error',
+            message: 'Oops sr, có gì đấy không đúng xảy ra rồi :<',
+            duration: 2000,
+          });
+        } else {
+          this.snackbarRef.current._open({
+            variant: 'success',
+            message: 'Bài nhạc đã được thêm!',
+          });
+          this.setState({ newURL: '' });
+        }
+      });
     }
   }
 
   _removeURL(index) {
-    if (this.props.playingSource === this.state.urls[index]) {
+    const urls = this.state.tracks.map(track => track.url);
+    if (this.props.playingSource === urls[index]) {
       this.props.updatePlayURL(null);
     }
-    this.database.roomURLs.set(
-      this.state.urls.filter((_, i) => index !== i),
-      (error) => {
-        if (error) {
-          this.snackbarRef.current._open({
-            variant: 'error',
-            message: 'Oops, thử lại sau nhé :<',
-            duration: 2000,
-          });
-        }
-      });
+    this.database.roomURLs.set(urls.filter((_, i) => index !== i), (error) => {
+      if (error) {
+        this.snackbarRef.current._open({
+          variant: 'error',
+          message: 'Oops, thử lại sau nhé :<',
+          duration: 2000,
+        });
+      }
+    });
   }
 
   render() {
     const { classes, updatePlayURL } = this.props;
-    const { urls, newURL } = this.state;
+    const { tracks, newURL } = this.state;
     return (
-      <Card>
-        <CardContent className={classes.content}>
+      <div>
+        <Card className={classes.content}>
           <form className={classes.playlistAddBox} onSubmit={this._addURL}>
             <Snackbar ref={this.snackbarRef} />
             <TextField
@@ -144,14 +160,21 @@ class PlayList extends React.Component {
               <PlaylistAddIcon />
             </IconButton>
           </form>
-          <SampleList
-            urls={urls} updatePlayURL={updatePlayURL}
-            removeURL={this._removeURL}
-            rearrangeURLs={this._rearrangeURLs} />
-        </CardContent>
-      </Card>
+        </Card>
+        <SampleList
+          tracks={tracks}
+          updatePlayURL={updatePlayURL}
+          removeURL={this._removeURL}
+          rearrangeURLs={this._rearrangeURLs} />
+      </div>
     );
   }
 }
 
 export default withStyles(styles)(PlayList);
+
+const _fetchTrackInfo = async (url) => {
+  const trackId = extractId(url);
+  const trackInfo = await getInfo(trackId);
+  return { ...trackInfo, url };
+}

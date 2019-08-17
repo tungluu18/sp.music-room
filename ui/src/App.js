@@ -1,5 +1,4 @@
 import React, { Fragment } from 'react';
-import { AppBar, Typography } from '@material-ui/core';
 
 import { Play } from './pages';
 

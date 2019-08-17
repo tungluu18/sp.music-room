@@ -18,9 +18,11 @@ class PlayPage extends React.Component {
     this.uuid = uuid();
     this._updatePlayingSource = this._updatePlayingSource.bind(this);
     this._updatePlayingStatus = this._updatePlayingStatus.bind(this);
+    this._nextPlay = this._nextPlay.bind(this);
   }
 
   playerRef = createRef();
+  playlistRef = createRef();
 
   componentDidMount() {
     this.database = {
@@ -75,6 +77,10 @@ class PlayPage extends React.Component {
     });
   }
 
+  _nextPlay() {
+    this.playlistRef.current._nextPlay();
+  }
+
   _updatePlayingStatus({ status, time }) {
     this.database.roomPlaying.update({
       status, time,
@@ -87,16 +93,18 @@ class PlayPage extends React.Component {
     const { playing, init, continueState } = this.state;
     const url = (playing || {}).url;
     return (
-      <Grid container spacing={1} justify='flex-start' style={{ padding: '10px' }}>
-        <Grid item xs={12} md={8}>
+      <Grid container spacing={1} justify='flex-start' style={{ width: '100%', padding: '10px' }}>
+        <Grid item xs={12} md={9}>
           <Player
             url={url}
             ref={this.playerRef}
             continueState={init && continueState}
+            nextPlay={this._nextPlay}
             updatePlayingStatus={this._updatePlayingStatus} />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <PlayList
+            ref={this.playlistRef}
             playingSource={url}
             updatePlayURL={this._updatePlayingSource} />
         </Grid>
