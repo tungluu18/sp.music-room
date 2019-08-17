@@ -3,11 +3,11 @@ import React from 'react';
 import {
   Avatar,
   Typography,
-  ListItem,
   IconButton,
   Tooltip,
   Chip,
   CardMedia,
+  Card,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import {
@@ -19,12 +19,12 @@ import {
 } from '@material-ui/icons';
 import { red } from '@material-ui/core/colors';
 
-import { extractVideoId, getInfo } from '../services/youtube';
-
 const styles = ({
   root: {
     display: 'flex',
     alignItems: 'stretch',
+    marginTop: '0.5rem',
+    padding: '5px',
   },
   wrapper: {
     fontSize: '0.8rem',
@@ -57,69 +57,54 @@ const styles = ({
   }
 });
 
-class SampleItem extends React.PureComponent {
-  state = {
-    videoInfo: null
-  }
-  componentDidMount() {
-    getInfo(extractVideoId(this.props.url)).then(data => {
-      this.setState({ videoInfo: data });
-    });
-  }
 
-  render() {
-    const { classes, url, updatePlayURL, removeURL, rearrangeURLs, isPlaying } = this.props;
-    const { videoInfo } = this.state;
-    const videoId = extractVideoId(url)
-    const thumbnailURL = `https://img.youtube.com/vi/${videoId}/default.jpg`
-    return (
-      <ListItem dense className={classes.root}>
-        <div className={classes.wrapper}>
-          <IconButton className={classes.btn} onClick={() => rearrangeURLs('up')}>
-            <UpIcon />
-          </IconButton>
-          <IconButton className={classes.btn} onClick={() => rearrangeURLs('down')}>
-            <DownIcon />
-          </IconButton>
-        </div>
-        <CardMedia
-          image={thumbnailURL}
-          style={{ backgroundSize: 'contain', width: '30%', borderRadius: '10px' }}
-          title="Video Thumbnail" />
-        <div className={classes.wrapper} style={{ width: '100%' }}>
-          {/* <div className={classes.content}> */}
-          <Typography variant="h5" className={classes.text}>
-            {videoInfo ? videoInfo.title : 'loading....'}
-          </Typography>
-          {/* </div> */}
-          <div className={classes.controls}>
-            {isPlaying ?
-              <Chip
-                label="playing......" size="small" color="primary"
-                avatar={<Avatar><PlayIcon /></Avatar>} />
-              : null}
-            <Tooltip title="Chơi nó ngay">
-              <IconButton aria-label="play-arrow" onClick={updatePlayURL}>
-                <PlayIcon />
+function SampleItem({ classes, track, updatePlayURL, removeURL, rearrangeURLs, isPlaying }) {
+  return (
+    <Card dense className={classes.root}>
+      <div className={classes.wrapper} style={{ width: '5%', alignItems: 'center' }}>
+        <IconButton className={classes.btn} onClick={() => rearrangeURLs('up')}>
+          <UpIcon />
+        </IconButton>
+        <IconButton className={classes.btn} onClick={() => rearrangeURLs('down')}>
+          <DownIcon />
+        </IconButton>
+      </div>
+      <CardMedia
+        image={track.thumbnail_url}
+        style={{ backgroundSize: 'contain', width: '30%' }}
+        title="Video Thumbnail" />
+      <div className={classes.wrapper} style={{ width: '65%' }}>
+        <Typography variant="h6" style={{ fontFamily: 'sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {track.title}
+        </Typography>
+        <div className={classes.controls}>
+          {isPlaying ?
+            <Chip
+              label="playing......" size="small" color="primary"
+              avatar={<Avatar><PlayIcon /></Avatar>} />
+            : null}
+          <Tooltip title="Chơi nó ngay">
+            <IconButton aria-label="play-arrow" onClick={updatePlayURL}>
+              <PlayIcon />
+            </IconButton>
+          </Tooltip>
+          <a href={track.url} target="_blank" rel="noopener noreferrer">
+            <Tooltip title={track.url}>
+              <IconButton aria-label="link" className={classes.btn}>
+                <LinkIcon />
               </IconButton>
             </Tooltip>
-            <a href={url} target="_blank" rel="noopener noreferrer">
-              <Tooltip title={url}>
-                <IconButton aria-label="link" className={classes.btn}>
-                  <LinkIcon />
-                </IconButton>
-              </Tooltip>
-            </a>
-            <Tooltip title="Bỏ bài nhạc">
-              <IconButton aria-label="delete" className={classes.btn} onClick={removeURL}>
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </div>
+          </a>
+          <Tooltip title="Bỏ bài nhạc">
+            <IconButton aria-label="delete" className={classes.btn} onClick={removeURL}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
         </div>
-      </ListItem >
-    );
-  }
+      </div>
+    </Card>
+  );
 }
 
 export default withStyles(styles)(SampleItem);
+
